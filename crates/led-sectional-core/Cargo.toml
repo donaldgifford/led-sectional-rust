@@ -1,9 +1,13 @@
 [package]
 name = "led-sectional-core"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 description = "Core logic for LED sectional aviation weather display"
 license = "MIT"
+repository = "https://github.com/donaldgifford/led-sectional-rust"
+authors = ["Donald Gifford"]
+keywords = ["aviation", "metar", "led", "esp32", "weather"]
+categories = ["embedded", "aerospace"]
 
 [dependencies]
 serde = { workspace = true }
