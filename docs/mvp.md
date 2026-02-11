@@ -444,12 +444,12 @@ code = "NULL"
 
 **Acceptance Criteria**:
 
-- [ ] `LedState::set_lightning_indices()` stores indices and saves original colors
-- [ ] `LedState::apply_lightning_flash()` sets lightning LEDs to white, returns whether any exist
-- [ ] `LedState::restore_lightning()` restores original colors
-- [ ] Lightning indices include LTNG special code positions
-- [ ] Unit tests cover: no lightning (empty), single flash, multiple flashes, restore correctness
-- [ ] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
+- [x] `LedState::set_lightning_indices()` stores indices and saves original colors
+- [x] `LedState::apply_lightning_flash()` sets lightning LEDs to white, returns whether any exist
+- [x] `LedState::restore_lightning()` restores original colors
+- [x] Lightning indices include LTNG special code positions
+- [x] Unit tests cover: no lightning (empty), single flash, multiple flashes, restore correctness
+- [x] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
 
 ### Phase 8: WiFi Provisioning (Captive Portal)
 
