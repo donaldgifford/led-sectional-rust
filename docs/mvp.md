@@ -349,11 +349,11 @@ code = "NULL"
 
 **Acceptance Criteria**:
 
-- [ ] `firmware/src/wifi.rs` exists with `WifiManager` struct
-- [ ] NVS credential load/store functions implemented
-- [ ] STA connection with configurable timeout
-- [ ] `firmware/src/main.rs` integrates WiFi with credential lookup order
-- [ ] Core crate still builds and passes: `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run`
+- [x] `firmware/src/wifi.rs` exists with `WifiManager` struct
+- [x] NVS credential load/store functions implemented
+- [x] STA connection with configurable timeout
+- [x] `firmware/src/main.rs` integrates WiFi with credential lookup order
+- [x] Core crate still builds and passes: `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run`
 
 ### Phase 5: METAR Fetching and Parsing
 
