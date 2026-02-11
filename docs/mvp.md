@@ -478,14 +478,14 @@ This is the key UX improvement over hardcoded credentials.
 
 **Acceptance Criteria**:
 
-- [ ] `firmware/src/provisioning.rs` exists with `CaptivePortal` struct
-- [ ] HTML form with SSID input, password input, submit button embedded as const
-- [ ] AP mode starts with SSID "LED-Sectional-Setup"
-- [ ] GET / serves the HTML form
-- [ ] POST /connect parses credentials and stores in NVS
-- [ ] Device reboots after credential submission
-- [ ] Firmware `main.rs` enters provisioning when no credentials found
-- [ ] Core crate still passes: `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run`
+- [x] `firmware/src/provisioning.rs` exists with `CaptivePortal` struct
+- [x] HTML form with SSID input, password input, submit button embedded as const
+- [x] AP mode starts with SSID "LED-Sectional-Setup"
+- [x] GET / serves the HTML form
+- [x] POST /connect parses credentials and stores in NVS
+- [x] Device reboots after credential submission
+- [x] Firmware `main.rs` enters provisioning when no credentials found
+- [x] Core crate still passes: `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run`
 
 ---
 
