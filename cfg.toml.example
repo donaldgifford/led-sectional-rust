@@ -1,0 +1,50 @@
+# LED Sectional Configuration
+#
+# Copy this file to cfg.toml and customize for your setup.
+
+[settings]
+brightness = 20                # LED brightness (0-255)
+request_interval_secs = 900    # METAR fetch interval in seconds (60-3600)
+wind_threshold_kt = 25         # Wind speed threshold for yellow indication (0-100 knots)
+do_lightning = true             # Flash white on airports reporting thunderstorms
+do_winds = true                 # Show yellow for VFR airports with high winds
+data_pin = 2                   # GPIO pin for WS2812B data line
+
+[wifi]
+# Uncomment and set for development. In production, use the captive portal.
+# ssid = "YourNetworkName"
+# password = "YourPassword"
+
+# Airport list: each entry maps to one LED on the strip (0-indexed).
+# Use ICAO codes for real airports, or special codes:
+#   NULL  - skip this LED (off)
+#   VFR   - legend: always green
+#   MVFR  - legend: always blue
+#   IFR   - legend: always red
+#   LIFR  - legend: always magenta
+#   WVFR  - legend: always yellow (windy VFR)
+#   LTNG  - lightning demo: flashes white periodically
+
+[[airports]]
+code = "LIFR"
+
+[[airports]]
+code = "IFR"
+
+[[airports]]
+code = "MVFR"
+
+[[airports]]
+code = "VFR"
+
+[[airports]]
+code = "WVFR"
+
+[[airports]]
+code = "KSFO"
+
+[[airports]]
+code = "KLAX"
+
+[[airports]]
+code = "NULL"

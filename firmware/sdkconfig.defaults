@@ -1,0 +1,16 @@
+# Rust needs a larger main task stack size compared to C (default is 3K)
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# Use 1000 Hz tick frequency for 1ms granularity thread sleeps
+CONFIG_FREERTOS_HZ=1000
+
+# WiFi
+CONFIG_ESP_WIFI_ENABLED=y
+
+# mbedTLS certificate bundle for HTTPS
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_FULL=y
+
+# Task stack sizes
+CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=4096
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096

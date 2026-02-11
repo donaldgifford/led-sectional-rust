@@ -1,0 +1,26 @@
+[package]
+name = "led-sectional-firmware"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[[bin]]
+name = "led-sectional-firmware"
+harness = false
+
+[dependencies]
+led-sectional-core = { path = "../crates/led-sectional-core" }
+esp-idf-svc = { version = "0.51", features = ["binstart", "critical-section"] }
+ws2812-esp32-rmt-driver = { version = "0.13", features = ["smart-leds-trait"] }
+smart-leds = "0.4"
+log = "0.4"
+
+[build-dependencies]
+embuild = "0.33"
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = 1
