@@ -392,14 +392,14 @@ code = "NULL"
 
 **Acceptance Criteria**:
 
-- [ ] `metar.rs` module in core crate with `MetarReport` struct
-- [ ] `parse_metars()` correctly parses JSON array of METAR objects
-- [ ] `has_thunderstorm()` detects "TS" in wxString
-- [ ] `max_wind()` returns the larger of wspd and wgst
-- [ ] `build_metar_url()` constructs correct URL with comma-separated codes
-- [ ] Unit tests cover: valid JSON, empty array, null fields, thunderstorm detection, wind calculation
-- [ ] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
-- [ ] `firmware/src/metar_client.rs` exists with HTTP client implementation
+- [x] `metar.rs` module in core crate with `MetarReport` struct
+- [x] `parse_metars()` correctly parses JSON array of METAR objects
+- [x] `has_thunderstorm()` detects "TS" in wxString
+- [x] `max_wind()` returns the larger of wspd and wgst
+- [x] `build_metar_url()` constructs correct URL with comma-separated codes
+- [x] Unit tests cover: valid JSON, empty array, null fields, thunderstorm detection, wind calculation
+- [x] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
+- [x] `firmware/src/metar_client.rs` exists with HTTP client implementation
 
 ### Phase 6: Flight Category to LED Mapping
 
