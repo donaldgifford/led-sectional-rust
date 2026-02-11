@@ -230,12 +230,12 @@ led-sectional-rust/
 
 **Acceptance Criteria**:
 
-- [ ] Workspace root `Cargo.toml` exists with core crate as member
-- [ ] `cargo build` from workspace root succeeds (builds core crate)
-- [ ] `cargo clippy --all-targets -- -D warnings` passes
-- [ ] `cargo nextest run` passes (no tests yet, but harness runs)
-- [ ] `firmware/` directory exists with all ESP-IDF scaffolding files
-- [ ] `cfg.toml.example` exists with documented settings, wifi, and airports sections
+- [x] Workspace root `Cargo.toml` exists with core crate as member
+- [x] `cargo build` from workspace root succeeds (builds core crate)
+- [x] `cargo clippy --all-targets -- -D warnings` passes
+- [x] `cargo nextest run` passes (no tests yet, but harness runs)
+- [x] `firmware/` directory exists with all ESP-IDF scaffolding files
+- [x] `cfg.toml.example` exists with documented settings, wifi, and airports sections
 
 ### Phase 2: LED Driver
 
@@ -254,12 +254,12 @@ led-sectional-rust/
 
 **Acceptance Criteria**:
 
-- [ ] `led.rs` module exists in core crate with `Color` struct and all color constants
-- [ ] `LedState` struct manages LED buffer with brightness scaling
-- [ ] `brightness_scaled_buffer()` correctly scales colors (0 = all off, 255 = full)
-- [ ] Unit tests pass for color constants, brightness scaling, set/get operations
-- [ ] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
-- [ ] `firmware/src/led_driver.rs` exists with WS2812B driver wrapper
+- [x] `led.rs` module exists in core crate with `Color` struct and all color constants
+- [x] `LedState` struct manages LED buffer with brightness scaling
+- [x] `brightness_scaled_buffer()` correctly scales colors (0 = all off, 255 = full)
+- [x] Unit tests pass for color constants, brightness scaling, set/get operations
+- [x] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
+- [x] `firmware/src/led_driver.rs` exists with WS2812B driver wrapper
 
 ### Phase 3: Configuration System
 

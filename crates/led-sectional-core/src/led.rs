@@ -209,3 +209,156 @@ pub fn update_leds_from_metars(
 
     lightning_indices
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn color_constants_match_original() {
+        assert_eq!(COLOR_VFR, Color::new(0, 255, 0));
+        assert_eq!(COLOR_MVFR, Color::new(0, 0, 255));
+        assert_eq!(COLOR_IFR, Color::new(255, 0, 0));
+        assert_eq!(COLOR_LIFR, Color::new(255, 0, 255));
+        assert_eq!(COLOR_WIND, Color::new(255, 255, 0));
+        assert_eq!(COLOR_UNKNOWN, Color::new(0, 0, 0));
+        assert_eq!(COLOR_LIGHTNING, Color::new(255, 255, 255));
+    }
+
+    #[test]
+    fn led_state_new() {
+        let state = LedState::new(5, 128);
+        assert_eq!(state.num_leds(), 5);
+        assert_eq!(state.brightness(), 128);
+        for i in 0..5 {
+            assert_eq!(state.get(i).unwrap(), COLOR_UNKNOWN);
+        }
+    }
+
+    #[test]
+    fn led_state_set_and_get() {
+        let mut state = LedState::new(3, 255);
+        state.set(0, COLOR_VFR).unwrap();
+        state.set(1, COLOR_IFR).unwrap();
+        state.set(2, COLOR_MVFR).unwrap();
+        assert_eq!(state.get(0).unwrap(), COLOR_VFR);
+        assert_eq!(state.get(1).unwrap(), COLOR_IFR);
+        assert_eq!(state.get(2).unwrap(), COLOR_MVFR);
+    }
+
+    #[test]
+    fn led_state_out_of_bounds() {
+        let mut state = LedState::new(2, 255);
+        assert!(state.set(2, COLOR_VFR).is_err());
+        assert!(state.get(2).is_err());
+    }
+
+    #[test]
+    fn led_state_set_all() {
+        let mut state = LedState::new(3, 255);
+        state.set_all(COLOR_IFR);
+        for i in 0..3 {
+            assert_eq!(state.get(i).unwrap(), COLOR_IFR);
+        }
+    }
+
+    #[test]
+    fn brightness_scaling_full() {
+        let mut state = LedState::new(1, 255);
+        state.set(0, Color::new(255, 128, 64)).unwrap();
+        let scaled = state.brightness_scaled_buffer();
+        assert_eq!(scaled[0], Color::new(255, 128, 64));
+    }
+
+    #[test]
+    fn brightness_scaling_half() {
+        let mut state = LedState::new(1, 128);
+        state.set(0, Color::new(255, 255, 255)).unwrap();
+        let scaled = state.brightness_scaled_buffer();
+        // 255 * 128 / 255 = 128
+        assert_eq!(scaled[0].r, 128);
+        assert_eq!(scaled[0].g, 128);
+        assert_eq!(scaled[0].b, 128);
+    }
+
+    #[test]
+    fn brightness_scaling_zero() {
+        let mut state = LedState::new(1, 0);
+        state.set(0, Color::new(255, 255, 255)).unwrap();
+        let scaled = state.brightness_scaled_buffer();
+        assert_eq!(scaled[0], Color::new(0, 0, 0));
+    }
+
+    #[test]
+    fn flight_category_colors() {
+        assert_eq!(flight_category_color(Some("VFR"), None, None, 25, true), COLOR_VFR);
+        assert_eq!(flight_category_color(Some("MVFR"), None, None, 25, true), COLOR_MVFR);
+        assert_eq!(flight_category_color(Some("IFR"), None, None, 25, true), COLOR_IFR);
+        assert_eq!(flight_category_color(Some("LIFR"), None, None, 25, true), COLOR_LIFR);
+        assert_eq!(flight_category_color(None, None, None, 25, true), COLOR_UNKNOWN);
+        assert_eq!(flight_category_color(Some("GARBAGE"), None, None, 25, true), COLOR_UNKNOWN);
+    }
+
+    #[test]
+    fn flight_category_wind_override() {
+        // VFR with high wind -> yellow
+        assert_eq!(
+            flight_category_color(Some("VFR"), Some(30), None, 25, true),
+            COLOR_WIND
+        );
+        // VFR with high gust -> yellow
+        assert_eq!(
+            flight_category_color(Some("VFR"), Some(10), Some(30), 25, true),
+            COLOR_WIND
+        );
+        // VFR with high wind but do_winds=false -> green
+        assert_eq!(
+            flight_category_color(Some("VFR"), Some(30), None, 25, false),
+            COLOR_VFR
+        );
+        // IFR with high wind -> still red (wind override only affects VFR)
+        assert_eq!(
+            flight_category_color(Some("IFR"), Some(30), None, 25, true),
+            COLOR_IFR
+        );
+    }
+
+    #[test]
+    fn special_code_colors() {
+        assert_eq!(special_code_color("VFR"), Some(COLOR_VFR));
+        assert_eq!(special_code_color("MVFR"), Some(COLOR_MVFR));
+        assert_eq!(special_code_color("IFR"), Some(COLOR_IFR));
+        assert_eq!(special_code_color("LIFR"), Some(COLOR_LIFR));
+        assert_eq!(special_code_color("WVFR"), Some(COLOR_WIND));
+        assert_eq!(special_code_color("LTNG"), Some(COLOR_VFR));
+        assert_eq!(special_code_color("NULL"), Some(COLOR_UNKNOWN));
+        assert_eq!(special_code_color("KSFO"), None);
+    }
+
+    #[test]
+    fn lightning_flash_and_restore() {
+        let mut state = LedState::new(3, 255);
+        state.set(0, COLOR_VFR).unwrap();
+        state.set(1, COLOR_IFR).unwrap();
+        state.set(2, COLOR_MVFR).unwrap();
+
+        state.set_lightning_indices(vec![0, 2]);
+
+        assert!(state.apply_lightning_flash());
+        assert_eq!(state.get(0).unwrap(), COLOR_LIGHTNING);
+        assert_eq!(state.get(1).unwrap(), COLOR_IFR); // unaffected
+        assert_eq!(state.get(2).unwrap(), COLOR_LIGHTNING);
+
+        state.restore_lightning();
+        assert_eq!(state.get(0).unwrap(), COLOR_VFR);
+        assert_eq!(state.get(1).unwrap(), COLOR_IFR);
+        assert_eq!(state.get(2).unwrap(), COLOR_MVFR);
+    }
+
+    #[test]
+    fn lightning_no_indices() {
+        let mut state = LedState::new(3, 255);
+        state.set_lightning_indices(vec![]);
+        assert!(!state.apply_lightning_flash());
+    }
+}
