@@ -361,4 +361,138 @@ mod tests {
         state.set_lightning_indices(vec![]);
         assert!(!state.apply_lightning_flash());
     }
+
+    // -- update_leds_from_metars tests --
+
+    fn make_airport(code: &str) -> crate::config::Airport {
+        crate::config::Airport {
+            code: code.to_string(),
+        }
+    }
+
+    fn make_metar(icao: &str, cat: &str, wspd: u32, wx: Option<&str>) -> crate::metar::MetarReport {
+        crate::metar::MetarReport {
+            icao_id: icao.to_string(),
+            flt_cat: Some(cat.to_string()),
+            wspd: Some(wspd),
+            wgst: None,
+            wx_string: wx.map(|s| s.to_string()),
+        }
+    }
+
+    #[test]
+    fn update_leds_special_codes() {
+        let airports = vec![
+            make_airport("VFR"),
+            make_airport("IFR"),
+            make_airport("NULL"),
+        ];
+        let mut state = LedState::new(3, 255);
+        let metars = std::collections::HashMap::new();
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(state.get(0).unwrap(), COLOR_VFR);
+        assert_eq!(state.get(1).unwrap(), COLOR_IFR);
+        assert_eq!(state.get(2).unwrap(), COLOR_UNKNOWN);
+        assert!(lightning.is_empty());
+    }
+
+    #[test]
+    fn update_leds_real_airports() {
+        let airports = vec![make_airport("KSFO"), make_airport("KLAX")];
+        let mut state = LedState::new(2, 255);
+
+        let mut metars = std::collections::HashMap::new();
+        metars.insert("KSFO".to_string(), make_metar("KSFO", "VFR", 10, None));
+        metars.insert("KLAX".to_string(), make_metar("KLAX", "IFR", 5, None));
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(state.get(0).unwrap(), COLOR_VFR);
+        assert_eq!(state.get(1).unwrap(), COLOR_IFR);
+        assert!(lightning.is_empty());
+    }
+
+    #[test]
+    fn update_leds_missing_metar() {
+        let airports = vec![make_airport("KSFO"), make_airport("KXYZ")];
+        let mut state = LedState::new(2, 255);
+
+        let mut metars = std::collections::HashMap::new();
+        metars.insert("KSFO".to_string(), make_metar("KSFO", "MVFR", 5, None));
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(state.get(0).unwrap(), COLOR_MVFR);
+        assert_eq!(state.get(1).unwrap(), COLOR_UNKNOWN); // missing METAR
+        assert!(lightning.is_empty());
+    }
+
+    #[test]
+    fn update_leds_wind_override() {
+        let airports = vec![make_airport("KSFO")];
+        let mut state = LedState::new(1, 255);
+
+        let mut metars = std::collections::HashMap::new();
+        metars.insert("KSFO".to_string(), make_metar("KSFO", "VFR", 30, None));
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(state.get(0).unwrap(), COLOR_WIND); // high wind -> yellow
+        assert!(lightning.is_empty());
+    }
+
+    #[test]
+    fn update_leds_thunderstorm_detection() {
+        let airports = vec![make_airport("KSFO"), make_airport("KLAX")];
+        let mut state = LedState::new(2, 255);
+
+        let mut metars = std::collections::HashMap::new();
+        metars.insert("KSFO".to_string(), make_metar("KSFO", "VFR", 10, Some("TS")));
+        metars.insert("KLAX".to_string(), make_metar("KLAX", "VFR", 5, None));
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(lightning, vec![0]); // KSFO has thunderstorm
+    }
+
+    #[test]
+    fn update_leds_ltng_special_code() {
+        let airports = vec![make_airport("LTNG"), make_airport("KSFO")];
+        let mut state = LedState::new(2, 255);
+        let metars = std::collections::HashMap::new();
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(state.get(0).unwrap(), COLOR_VFR); // LTNG shows green
+        assert_eq!(lightning, vec![0]); // LTNG is in lightning list
+    }
+
+    #[test]
+    fn update_leds_mixed_layout() {
+        let airports = vec![
+            make_airport("LIFR"),  // legend
+            make_airport("KSFO"),  // real
+            make_airport("NULL"),  // skip
+            make_airport("LTNG"),  // lightning demo
+            make_airport("KLAX"),  // real
+        ];
+        let mut state = LedState::new(5, 255);
+
+        let mut metars = std::collections::HashMap::new();
+        metars.insert("KSFO".to_string(), make_metar("KSFO", "VFR", 10, None));
+        metars.insert("KLAX".to_string(), make_metar("KLAX", "LIFR", 5, Some("TS BR")));
+
+        let lightning = update_leds_from_metars(&mut state, &airports, &metars, 25, true);
+
+        assert_eq!(state.get(0).unwrap(), COLOR_LIFR);    // legend
+        assert_eq!(state.get(1).unwrap(), COLOR_VFR);     // KSFO VFR
+        assert_eq!(state.get(2).unwrap(), COLOR_UNKNOWN);  // NULL
+        assert_eq!(state.get(3).unwrap(), COLOR_VFR);     // LTNG (green base)
+        assert_eq!(state.get(4).unwrap(), COLOR_LIFR);    // KLAX LIFR
+
+        // LTNG at index 3 and KLAX thunderstorm at index 4
+        assert_eq!(lightning, vec![3, 4]);
+    }
 }

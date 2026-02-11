@@ -417,12 +417,12 @@ code = "NULL"
 
 **Acceptance Criteria**:
 
-- [ ] `flight_category_color()` returns correct color for each category
-- [ ] `flight_category_color()` returns yellow for VFR with winds above threshold when do_winds=true
-- [ ] `special_code_color()` maps all special codes correctly, returns None for ICAO codes
-- [ ] `update_leds_from_metars()` correctly sets LED buffer from config + METAR data
-- [ ] Unit tests cover: each flight category, wind override, unknown category, special codes, full mapping
-- [ ] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
+- [x] `flight_category_color()` returns correct color for each category
+- [x] `flight_category_color()` returns yellow for VFR with winds above threshold when do_winds=true
+- [x] `special_code_color()` maps all special codes correctly, returns None for ICAO codes
+- [x] `update_leds_from_metars()` correctly sets LED buffer from config + METAR data
+- [x] Unit tests cover: each flight category, wind override, unknown category, special codes, full mapping
+- [x] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
 
 ### Phase 7: Wind and Lightning Effects
 
