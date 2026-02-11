@@ -107,3 +107,167 @@ const SPECIAL_CODES: &[&str] = &["NULL", "VFR", "MVFR", "IFR", "LIFR", "WVFR", "
 pub fn is_special_code(code: &str) -> bool {
     SPECIAL_CODES.contains(&code)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const FULL_CONFIG: &str = r#"
+[settings]
+brightness = 50
+request_interval_secs = 300
+wind_threshold_kt = 30
+do_lightning = false
+do_winds = false
+data_pin = 5
+
+[wifi]
+ssid = "TestNetwork"
+password = "TestPass123"
+
+[[airports]]
+code = "LIFR"
+
+[[airports]]
+code = "IFR"
+
+[[airports]]
+code = "MVFR"
+
+[[airports]]
+code = "VFR"
+
+[[airports]]
+code = "WVFR"
+
+[[airports]]
+code = "KSFO"
+
+[[airports]]
+code = "KLAX"
+
+[[airports]]
+code = "NULL"
+
+[[airports]]
+code = "LTNG"
+"#;
+
+    #[test]
+    fn parse_full_config() {
+        let config = Config::from_toml(FULL_CONFIG).unwrap();
+        assert_eq!(config.settings.brightness, 50);
+        assert_eq!(config.settings.request_interval_secs, 300);
+        assert_eq!(config.settings.wind_threshold_kt, 30);
+        assert!(!config.settings.do_lightning);
+        assert!(!config.settings.do_winds);
+        assert_eq!(config.settings.data_pin, 5);
+        assert_eq!(config.wifi.ssid.as_deref(), Some("TestNetwork"));
+        assert_eq!(config.wifi.password.as_deref(), Some("TestPass123"));
+        assert_eq!(config.airports.len(), 9);
+    }
+
+    #[test]
+    fn parse_empty_config_uses_defaults() {
+        let config = Config::from_toml("").unwrap();
+        assert_eq!(config.settings.brightness, 20);
+        assert_eq!(config.settings.request_interval_secs, 900);
+        assert_eq!(config.settings.wind_threshold_kt, 25);
+        assert!(config.settings.do_lightning);
+        assert!(config.settings.do_winds);
+        assert_eq!(config.settings.data_pin, 2);
+        assert!(config.wifi.ssid.is_none());
+        assert!(config.wifi.password.is_none());
+        assert!(config.airports.is_empty());
+    }
+
+    #[test]
+    fn parse_partial_config() {
+        let toml = r#"
+[settings]
+brightness = 100
+"#;
+        let config = Config::from_toml(toml).unwrap();
+        assert_eq!(config.settings.brightness, 100);
+        // Other fields should be defaults
+        assert_eq!(config.settings.request_interval_secs, 900);
+        assert!(config.settings.do_lightning);
+    }
+
+    #[test]
+    fn num_leds() {
+        let config = Config::from_toml(FULL_CONFIG).unwrap();
+        assert_eq!(config.num_leds(), 9);
+    }
+
+    #[test]
+    fn metar_airport_codes_filters_special() {
+        let config = Config::from_toml(FULL_CONFIG).unwrap();
+        let codes = config.metar_airport_codes();
+        assert_eq!(codes, vec!["KSFO", "KLAX"]);
+    }
+
+    #[test]
+    fn metar_airport_codes_empty() {
+        let toml = r#"
+[[airports]]
+code = "NULL"
+
+[[airports]]
+code = "VFR"
+"#;
+        let config = Config::from_toml(toml).unwrap();
+        assert!(config.metar_airport_codes().is_empty());
+    }
+
+    #[test]
+    fn validation_clamps_interval_low() {
+        let toml = r#"
+[settings]
+request_interval_secs = 10
+"#;
+        let config = Config::from_toml(toml).unwrap();
+        assert_eq!(config.settings.request_interval_secs, 60);
+    }
+
+    #[test]
+    fn validation_clamps_interval_high() {
+        let toml = r#"
+[settings]
+request_interval_secs = 99999
+"#;
+        let config = Config::from_toml(toml).unwrap();
+        assert_eq!(config.settings.request_interval_secs, 3600);
+    }
+
+    #[test]
+    fn validation_clamps_wind_threshold() {
+        let toml = r#"
+[settings]
+wind_threshold_kt = 200
+"#;
+        let config = Config::from_toml(toml).unwrap();
+        assert_eq!(config.settings.wind_threshold_kt, 100);
+    }
+
+    #[test]
+    fn is_special_code_checks() {
+        assert!(is_special_code("NULL"));
+        assert!(is_special_code("VFR"));
+        assert!(is_special_code("MVFR"));
+        assert!(is_special_code("IFR"));
+        assert!(is_special_code("LIFR"));
+        assert!(is_special_code("WVFR"));
+        assert!(is_special_code("LTNG"));
+        assert!(is_special_code("WBNK"));
+        assert!(!is_special_code("KSFO"));
+        assert!(!is_special_code("KLAX"));
+        assert!(!is_special_code(""));
+    }
+
+    #[test]
+    fn invalid_toml_returns_error() {
+        let result = Config::from_toml("{{{{invalid");
+        assert!(result.is_err());
+    }
+}

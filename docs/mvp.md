@@ -320,13 +320,13 @@ code = "NULL"
 
 **Acceptance Criteria**:
 
-- [ ] `config.rs` module with `Config`, `Settings`, `WifiConfig`, `Airport` structs
-- [ ] `Config::from_toml()` parses a full config string correctly
-- [ ] `Config::from_toml()` handles partial configs (missing fields use defaults)
-- [ ] `Config::metar_airport_codes()` filters out NULL, VFR, MVFR, IFR, LIFR, WVFR, LTNG
-- [ ] Validation clamps brightness (0-255), request_interval (60-3600), wind_threshold (0-100)
-- [ ] Unit tests cover: full config, partial config, defaults, airport filtering, validation
-- [ ] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
+- [x] `config.rs` module with `Config`, `Settings`, `WifiConfig`, `Airport` structs
+- [x] `Config::from_toml()` parses a full config string correctly
+- [x] `Config::from_toml()` handles partial configs (missing fields use defaults)
+- [x] `Config::metar_airport_codes()` filters out NULL, VFR, MVFR, IFR, LIFR, WVFR, LTNG
+- [x] Validation clamps brightness (0-255), request_interval (60-3600), wind_threshold (0-100)
+- [x] Unit tests cover: full config, partial config, defaults, airport filtering, validation
+- [x] `cargo build && cargo clippy --all-targets -- -D warnings && cargo nextest run` passes
 
 ### Phase 4: WiFi Connectivity
 
